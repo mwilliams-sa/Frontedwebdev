@@ -1,0 +1,99 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f0e7ff;
+  color: #333;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  background-color: #a07be9;
+  color: white;
+  text-align: center;
+  padding: 30px;
+}
+
+main {
+  padding: 20px;
+}
+
+h2 {
+  color: #6b4fad;
+}
+
+.carousel {
+  width: 100%;
+  max-width: 700px;
+  margin: 30px auto;
+  position: relative;
+}
+
+.carousel input[type="radio"] {
+  display: none;
+}
+
+.carousel-images {
+  display: flex;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.carousel-image {
+  min-width: 100%;
+  transition: transform 0.3s ease;
+}
+
+#slide1:checked ~ .carousel-images {
+  transform: translateX(0%);
+}
+
+#slide2:checked ~ .carousel-images {
+  transform: translateX(-100%);
+}
+
+#slide3:checked ~ .carousel-images {
+  transform: translateX(-200%);
+}
+
+.carousel-controls {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.carousel-controls label {
+  cursor: pointer;
+  padding: 8px 12px;
+  margin: 0 5px;
+  background-color: #d1c2f0;
+  border-radius: 5px;
+}
+
+.featured-books {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 40px;
+}
+
+.book {
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 15px;
+  width: calc(33.333% - 20px);
+  box-sizing: border-box;
+  border-radius: 6px;
+}
+
+footer {
+  background-color: #6b4fad;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  margin-top: 40px;
+}
+
+@media (max-width: 768px) {
+  .book {
+    width: 100%;
+  }
+}
