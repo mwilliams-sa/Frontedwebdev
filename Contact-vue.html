@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Little Bookshop • Vue Contact</title>
+  <link rel="stylesheet" href="styles.css"><!-- uses your existing look & feel -->
+  <style>
+    /* Fallback styles in case styles.css doesn't include these */
+    .btn-primary{display:inline-block;padding:10px 16px;background:#6b4fad;color:#fff;border:0;border-radius:10px;font-weight:600;cursor:pointer}
+    .btn-primary:disabled{opacity:.5;cursor:not-allowed}
+    .error-text{color:#d92d20;font-size:.9rem;min-height:1.2em}
+    .form-field{display:grid;gap:8px;margin-bottom:16px}
+    .form-field input,.form-field textarea{padding:12px 14px;border:1px solid #e5e5e5;border-radius:10px}
+    .input-invalid{border-color:#d92d20 !important;box-shadow:0 0 0 3px rgba(217,45,32,.12)}
+    .contact-wrap{max-width:720px;margin:32px auto;padding:0 20px}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:10000}
+    .modal-card{width:min(520px,92vw);background:#fff;border:1px solid #e5e5e5;border-radius:14px;padding:20px 22px;box-shadow:0 14px 30px rgba(0,0,0,.18)}
+    .modal-card h2{margin:0 0 8px;color:#5a3d94}
+    .modal-message{white-space:pre-wrap;background:#faf8ff;border:1px dashed #e5e5e5;border-radius:8px;padding:10px;margin:8px 0 16px}
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <div class="logo">Little Bookshop</div>
+      <input type="checkbox" id="menu-toggle">
+      <label for="menu-toggle" class="menu-icon">&#9776;</label>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="index.html#books">Books</a></li>
+        <li><a href="#" aria-current="page">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="contact-wrap">
+    <h1>Contact Us (Vue)</h1>
+    <p>Send us a message using the Vue contact form below.</p>
+
+    <!-- Parent app controls modal visibility and receives submitted data -->
+    <div id="app">
+      <contact-form
+        name-placeholder="Your full name"
+        email-placeholder="you@example.com"
+        message-placeholder="Write at least 10 characters..."
+        submit-label="Send Message"
+        @submitted="openModal"
+      ></contact-form>
+
+      <modal-confirm
+        v-if="showModal"
+        :details="submitted"
+        @close="showModal=false"
+      ></modal-confirm>
+    </div>
+  </main>
+
+  <!-- Vue 3 (CDN) -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+  <script>
+  // Modal component: displays submitted data; emits 'close'
+  const ModalConfirm = {
+    name: 'ModalConfirm',
+    props: {
+      details: {
+        type: Object,
+        required: true, // { name, email, message }
+      }
+    },
+    emits: ['close'],
+    template: `
+      <div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle" @click.self="$emit('close')">
+        <div class="modal-card">
+          <h2 id="modalTitle">Message Sent ✅</h2>
+          <p><strong>Name:</strong> {{ details.name }}</p>
+          <p><strong>Email:</strong> {{ details.email }}</p>
+          <p><strong>Message:</strong></p>
+          <pre class="modal-message">{{ details.message }}</pre>
+          <button class="btn-primary" @click="$emit('close')" aria-label="Close confirmation">Close</button>
+        </div>
+      </div>
+    `
+  };
+
+  // Contact form component: props for placeholders & button label
+  const ContactForm = {
+    name: 'ContactForm',
+    emits: ['submitted'],
+    props: {
+      namePlaceholder: { type: String, default: 'Your name' },
+      emailPlaceholder: { type: String, default: 'you@example.com' },
+      messagePlaceholder: { type: String, default: 'Type your message...' },
+      submitLabel: { type: String, default: 'Submit' },
+    },
+    data() {
+      return {
+        name: '',
+        email: '',
+        message: '',
+        touched: { name: false, email: false, message: false },
+      };
+    },
+    computed: {
+      nameError() {
+        if (!this.touched.name && !this.name) return '';
+        if (!this.name.trim()) return 'Name is required.';
+        const ok = /^[A-Za-z\s'-]+$/.test(this.name.trim());
+        return ok ? '' : 'Name can only contain letters, spaces, apostrophes, or hyphens.';
+      },
+      emailError() {
+        if (!this.touched.email && !this.email) return '';
+        if (!this.email.trim()) return 'Email is required.';
+        const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email.trim());
+        return ok ? '' : 'Please enter a valid email address.';
+      },
+      messageError() {
+        if (!this.touched.message && !this.message) return '';
+        const txt = this.message.trim();
+        if (!txt) return 'Message is required.';
+        if (txt.length < 10) return 'Message must be at least 10 characters.';
+        return '';
+      },
+      isValid() {
+        return !this.nameError && !this.emailError && !this.messageError
+               && this.name && this.email && this.message;
+      }
+    },
+    methods: {
+      onBlur(field){ this.touched[field] = true; },
+      submitForm() {
+        // block if invalid
+        if (!this.isValid) return;
+
+        // emit sanitized payload to parent
+        const sanitize = (s) => String(s).replaceAll('<','&lt;').replaceAll('>','&gt;');
+        this.$emit('submitted', {
+          name: sanitize(this.name.trim()),
+          email: sanitize(this.email.trim()),
+          message: sanitize(this.message.trim()),
+        });
+
+        // optional: reset fields
+        this.name = ''; this.email = ''; this.message = '';
+        this.touched = { name:false, email:false, message:false };
+      }
+    },
+    template: `
+      <form @submit.prevent="submitForm" novalidate>
+        <div class="form-field">
+          <label for="name">Name</label>
+          <input id="name" type="text" v-model="name" :placeholder="namePlaceholder"
+                 @blur="onBlur('name')" :class="{'input-invalid': !!nameError}">
+          <small class="error-text" v-if="nameError">{{ nameError }}</small>
+          <small class="error-text" v-else></small>
+        </div>
+
+        <div class="form-field">
+          <label for="email">Email</label>
+          <input id="email" type="email" v-model="email" :placeholder="emailPlaceholder"
+                 @blur="onBlur('email')" :class="{'input-invalid': !!emailError}">
+          <small class="error-text" v-if="emailError">{{ emailError }}</small>
+          <small class="error-text" v-else></small>
+        </div>
+
+        <div class="form-field">
+          <label for="message">Message</label>
+          <textarea id="message" rows="6" v-model="message" :placeholder="messagePlaceholder"
+                    @blur="onBlur('message')" :class="{'input-invalid': !!messageError}"></textarea>
+          <small class="error-text" v-if="messageError">{{ messageError }}</small>
+          <small class="error-text" v-else></small>
+        </div>
+
+        <button type="submit" class="btn-primary" :disabled="!isValid">
+          {{ submitLabel }}
+        </button>
+      </form>
+    `
+  };
+
+  // Root app: holds modal state and the submitted data
+  const app = Vue.createApp({
+    components: { ContactForm, ModalConfirm },
+    data(){ return { showModal:false, submitted:null }; },
+    methods:{
+      openModal(payload){ this.submitted = payload; this.showModal = true; }
+    }
+  });
+  app.mount('#app');
+  </script>
+</body>
+</html>
