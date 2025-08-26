@@ -1,43 +1,72 @@
-Purpose of Visual Styling
+**Component Structure**
 
-The goal of the visual styling was to create a warm, inviting, and easy-to-read design that reflects the cozy and friendly personality of a small local bookstore. 
+The contact form was built using Vue.js 3 with two reusable components:
 
+<contact-form>
 
-Colour Scheme
+Contains the form fields (name, email, message).
 
-I used soft lavender (#E7DDFF) and purple tones (#E2ABF1, #a07be9, #6b4fad) throughout the site.
+Uses v-model for two-way binding.
 
-These colours create a calm, whimsical, and bookish vibe — ideal for a boutique-style bookshop.
+Props allow customising placeholder text and button labels.
 
-The white backgrounds in sections like the book cards offer contrast and keep the content clean and readable.
+Emits a submitted event when the form passes validation.
 
+<modal-confirm>
 
-Typography
+Receives the submitted details as props.
 
-I used the Arial, sans-serif font for readability and simplicity.
+Displays them inside a styled modal window.
 
+Emits a close event when the user clicks Close or the backdrop.
 
-Layout
-
-Consistent padding and margins help space out content for visual clarity and breathing room.
-
-
-Overall Theme
-
-The "Little Bookshop" is meant to feel welcoming, creative, and personal — like stepping into a small, independent bookstore. The gentle pastel colours and soft layout support this:
-
-Colours feel light and warm, inviting readers to stay and explore.
-
-Simple fonts and spacing ensure the site feels approachable, not overwhelming.
+The root Vue app (#app) manages state for the modal and passes data between components.
 
 
-How I Validated the Stylesheet
+**Validation & Modal Interaction**
 
-I used the W3C CSS Validation Service to scan the stylesheet for any warnings or mistakes.
+Validation Rules:
+
+Name: required, letters/spaces/apostrophes/hyphens only.
+
+Email: required, must match standard email format.
+
+Message: required, at least 10 characters.
+
+Real-time Errors:
+Errors are shown under each field using v-if and computed properties, updating instantly as the user types.
+
+Submit Button:
+Disabled until all fields are valid (:disabled="!isValid").
+
+Modal Flow:
+On valid submission, the form emits the data to the parent app, which opens <modal-confirm>.
+The modal can be closed by clicking Close, clicking outside the modal card, or pressing Esc.
 
 
-Reflection and Challenges
+**Testing Notes**
 
-I kept the font and layout simple — I wanted the design to look neat.
+Tested in Chrome, Firefox, and Edge using the Vue CDN build.
 
-Learning: Using flexbox and @media queries helped me make a layout that works across desktop and mobile, which I hadn’t done much before.
+Checked responsiveness on mobile and desktop layouts.
+
+Verified:
+
+Error messages show/clear instantly.
+
+Submit button only enables when all inputs are valid.
+
+Submitted data correctly appears in the modal.
+
+Modal closes reliably with all three methods.
+
+
+**Challenges & Resolutions**
+
+Validation logic duplication: At first I repeated code in the template. I resolved this by moving rules into computed properties, which keeps the template clean and updates automatically.
+
+Modal communication: Needed to decide whether the modal should handle its own state. I chose to let the parent app control visibility while the modal only emits close. This separation made the code more reusable.
+
+Accessibility: Ensuring the modal works for all users was tricky. I added aria-modal, role="dialog", and linked the title with aria-labelled by for screen reader support.
+
+Styling consistency: To match the portfolio’s design, I reused existing classes (btn-primary, form-field, error-text) instead of inventing new ones.
